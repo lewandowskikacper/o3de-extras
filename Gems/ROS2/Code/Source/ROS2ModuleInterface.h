@@ -25,6 +25,7 @@
 #include <Manipulation/Controllers/JointsPIDControllerComponent.h>
 #include <Manipulation/JointsManipulationComponent.h>
 #include <Manipulation/JointsTrajectoryComponent.h>
+#include <NPC/VelocitySplinePublisher.h>
 #include <Odometry/ROS2OdometrySensorComponent.h>
 #include <Odometry/ROS2WheelOdometry.h>
 #include <ProximitySensor/ROS2ProximitySensor.h>
@@ -97,6 +98,8 @@ namespace ROS2
                     FingerGripperComponent::CreateDescriptor(),
                     ROS2ContactSensorComponent::CreateDescriptor(),
                     FollowingCameraComponent::CreateDescriptor(),
+                    FollowingCameraComponent::CreateDescriptor(),
+                    VelocitySplinePublisher::CreateDescriptor(),
                 });
         }
 

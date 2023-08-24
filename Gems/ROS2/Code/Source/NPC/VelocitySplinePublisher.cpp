@@ -104,6 +104,12 @@ namespace ROS2
 
     void VelocitySplinePublisher::OnTick(float deltaTime, AZ::ScriptTimePoint time)
     {
+
+        if (!m_publishingActive)
+        {
+            return;
+        }
+
         AZ::ConstSplinePtr splinePtr{ nullptr };
         LmbrCentral::SplineComponentRequestBus::EventResult(splinePtr, m_entity->GetId(), &LmbrCentral::SplineComponentRequests::GetSpline);
         AZ_Assert(splinePtr, "Spline pointer is null");
@@ -137,6 +143,14 @@ namespace ROS2
         {
             linearVelocity = m_linearSpeedFactor;
         }
+
+        if(splineQuery.m_splineAddress == splinePtr->GetAddressByFraction(1.0))
+        {
+            // reached the end of the spline
+            m_publishingActive = false;
+            return;
+        }
+
 
         // cross track error
         const float crossTrackError = robotLocationInGoalSpace.GetY();

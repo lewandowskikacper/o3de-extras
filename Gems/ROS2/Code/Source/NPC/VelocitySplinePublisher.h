@@ -58,6 +58,8 @@ namespace ROS2
         float m_angularSpeedFactor = 5.f;
         float m_crossTrackFactor = 0.3f;
         bool m_drawInGame = true;
+        bool m_publishingActive = true;
+        bool m_navToStart = true;
 
         TopicConfiguration m_cmdTopicConfiguration;
         AZ::EntityId m_baselinkEntityId;

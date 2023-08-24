@@ -132,15 +132,6 @@ namespace ROS2
 
         ImGui::Checkbox("Navigate along spline", &m_publishingActive);
 
-        // if (ImGui::Button("Grip Command "))
-        // {
-        //     m_tryingToGrip = true;
-        // }
-
-        // if (ImGui::Button("Release Command"))
-        // {
-        //     ReleaseGrippedObject();
-        // }
         ImGui::End();
     }
 
@@ -163,44 +154,16 @@ namespace ROS2
         AZ::Transform robotLocationWorld{ AZ::Transform::CreateIdentity() };
         AZ::TransformBus::EventResult(robotLocationWorld, m_baselinkEntityId, &AZ::TransformBus::Events::GetWorldTM);
 
-
-        AZ::Transform robotLocationWorld_rev = robotLocationWorld  * AZ::Transform::CreateRotationZ(AZ::DegToRad(180));
-        //* AZ::Transform::CreateFromQuaternion(AZ::Quaternion::CreateFromEulerAnglesDegrees(AZ::Vector3(0, 0, 180))); //AZ::Transform::CreateRotationZ(180);
-        // robotLocationWorld.set
-
-
-        AZ_Printf(
-            "Spline Publisher",
-            " robot location wordl (%f %f %f) (%f) after reverse (%f %f %f) (%f)",
-            robotLocationWorld.GetTranslation().GetX(),
-            robotLocationWorld.GetTranslation().GetY(),
-            robotLocationWorld.GetTranslation().GetZ(),
-            robotLocationWorld.GetRotation().GetEulerDegrees().GetZ(),
-
-
-            robotLocationWorld_rev.GetTranslation().GetX(),
-            robotLocationWorld_rev.GetTranslation().GetY(),
-            robotLocationWorld_rev.GetTranslation().GetZ(),
-            robotLocationWorld_rev.GetRotation().GetEulerDegrees().GetZ()
-            );
-
-
         if (m_reversDirection)
         {
-            // robotLocationWorld = robotLocationWorld * AZ::Transform::CreateRotationZ(180);
-            robotLocationWorld = robotLocationWorld_rev;
+            robotLocationWorld = robotLocationWorld  * AZ::Transform::CreateRotationZ(AZ::DegToRad(180));
         }
 
         AZ::Transform robotLocationSpline = splineTransform.GetInverse() * robotLocationWorld;
 
-
-        const float lookAhead = m_lookAheadDistance;
-
-        // const float lookAhead = m_reversDirection ? -m_lookAheadDistance : m_lookAheadDistance;
-
         // query spline for nearest address
         const AZ::PositionSplineQueryResult splineQuery =
-            splinePtr->GetNearestAddressPosition(robotLocationSpline.TransformPoint(AZ::Vector3::CreateAxisX(lookAhead)));
+            splinePtr->GetNearestAddressPosition(robotLocationSpline.TransformPoint(AZ::Vector3::CreateAxisX(m_lookAheadDistance)));
         const AZ::Vector3 position = splinePtr->GetPosition(splineQuery.m_splineAddress);
         const AZ::Vector3 tangent = splinePtr->GetTangent(splineQuery.m_splineAddress);
         const AZ::Vector3 normal = splinePtr->GetNormal(splineQuery.m_splineAddress);
@@ -245,30 +208,11 @@ namespace ROS2
 
         geometry_msgs::msg::Twist cmd;
 
-        // AZ::Transform goal = AZ::Transform::CreateIdentity();
-
-        // goal.setFromEulerRadians
-        // ConvertEulerDegreesToTransform(0, 0, )
-        // goal.SetFromEulerDegrees(AZ::Vector3(0, 0, bearingError * m_angularSpeedFactor - crossTrackError * m_crossTrackFactor));
-
-        // goal.SetTranslation(linearVelocity, 0, 0);
-
-
-        // AZ::Transform goal_reflected = AZ::Transform::CreateRotationZ(180.0) * goal;
-        
-
-        // AZ_Printf(
-        //     "Spline Publisher",
-        //     " x: %f, ang: %f, reflected x: %f, ang: %f",
-        //     goal.GetTranslation().GetX(), goal.GetRotation().GetEulerDegrees().GetZ(), goal_reflected.GetTranslation().GetX(), goal_reflected.GetRotation().GetEulerDegrees().GetZ());
-
-
         cmd.angular.z = bearingError * m_angularSpeedFactor - crossTrackError * m_crossTrackFactor;
         cmd.linear.x = linearVelocity;
 
         if (m_reversDirection)
         {
-            // cmd.angular.z *= -1;
             cmd.linear.x *= -1;
         }
 

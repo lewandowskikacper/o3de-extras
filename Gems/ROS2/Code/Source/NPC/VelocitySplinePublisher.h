@@ -20,6 +20,8 @@
 #include <AzFramework/Entity/EntityDebugDisplayBus.h>
 #include <geometry_msgs/msg/twist.hpp>
 
+#include <ImGuiBus.h>
+
 namespace ROS2
 {
     //! Component that send velocity commands to ROS2 system according to entity position and spline trajectory.
@@ -28,6 +30,7 @@ namespace ROS2
         , private AZ::TickBus::Handler
         , private AZ::EntityBus::Handler
         , private AzFramework::EntityDebugDisplayEventBus::Handler
+        , public ImGui::ImGuiUpdateListenerBus::Handler
     {
     public:
         AZ_COMPONENT(VelocitySplinePublisher, "{28b8b025-b499-4876-bc06-1b9112ff62d3}");
@@ -47,6 +50,9 @@ namespace ROS2
         // AZ::EntityBus::Handler overrides ...
         void OnEntityActivated(const AZ::EntityId& entityId) override;
 
+        // ImGui::ImGuiUpdateListenerBus::Handler overrides...
+        void OnImGuiUpdate() override;
+
 
         // AzFramework::EntityDebugDisplayEventBus::Handler overrides
         void DisplayEntityViewport(const AzFramework::ViewportInfo& viewportInfo, AzFramework::DebugDisplayRequests& debugDisplay) override;
@@ -58,8 +64,8 @@ namespace ROS2
         float m_angularSpeedFactor = 5.f;
         float m_crossTrackFactor = 0.3f;
         bool m_drawInGame = true;
-        bool m_publishingActive = true;
-        bool m_navToStart = true;
+        bool m_publishingActive = false;
+
 
         TopicConfiguration m_cmdTopicConfiguration;
         AZ::EntityId m_baselinkEntityId;

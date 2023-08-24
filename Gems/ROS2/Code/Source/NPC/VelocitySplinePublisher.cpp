@@ -6,11 +6,13 @@
  *
  */
 #include "VelocitySplinePublisher.h"
+#include "AzCore/std/string/string.h"
 #include <AzCore/Asset/AssetSerializer.h>
 #include <AzCore/Math/Matrix3x3.h>
 #include <AzCore/Math/Transform.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <LmbrCentral/Shape/SplineComponentBus.h>
+#include <imgui/imgui.h>
 
 namespace ROS2
 {
@@ -28,7 +30,9 @@ namespace ROS2
                 ->Field("LookAheadDistance", &VelocitySplinePublisher::m_lookAheadDistance)
                 ->Field("cmdTopic", &VelocitySplinePublisher::m_cmdTopicConfiguration)
                 ->Field("RobotBaselink", &VelocitySplinePublisher::m_baselinkEntityId)
-                ->Field("DrawInGame", &VelocitySplinePublisher::m_drawInGame);
+                ->Field("DrawInGame", &VelocitySplinePublisher::m_drawInGame)
+                ->Field("PublishActive", &VelocitySplinePublisher::m_publishingActive);
+
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
             {
@@ -64,7 +68,13 @@ namespace ROS2
                         AZ::Edit::UIHandlers::Default,
                         &VelocitySplinePublisher::m_drawInGame,
                         "Draw in Game",
-                        "Draw track and goal in game.");
+                        "Draw track and goal in game.")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default,
+                        &VelocitySplinePublisher::m_publishingActive,
+                        "Publish Active",
+                        "Publish cmd_vel commands to robot."
+                    );
             }
         }
     }
@@ -85,6 +95,8 @@ namespace ROS2
         {
             AzFramework::EntityDebugDisplayEventBus::Handler::BusConnect(m_entity->GetId());
         }
+        ImGui::ImGuiUpdateListenerBus::Handler::BusConnect();
+
     }
 
     void VelocitySplinePublisher::Deactivate()
@@ -95,11 +107,33 @@ namespace ROS2
         }
         AZ::EntityBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
+        ImGui::ImGuiUpdateListenerBus::Handler::BusDisconnect();
     }
 
     float VelocitySplinePublisher::GetAngle(const AZ::Vector3& v1, const AZ::Vector3& v2)
     {
         return atan2(v1.Cross(v2).Dot(AZ::Vector3::CreateAxisZ(1.0f)), v1.Dot(v2));
+    }
+
+
+    void VelocitySplinePublisher::OnImGuiUpdate()
+    {
+        AZStd::string name =  "VelocitySplinePublisherDebugger " + m_entity->GetName();
+        ImGui::Begin(name.c_str());
+
+
+        ImGui::Checkbox("Navigate along spline", &m_publishingActive);
+
+        // if (ImGui::Button("Grip Command "))
+        // {
+        //     m_tryingToGrip = true;
+        // }
+
+        // if (ImGui::Button("Release Command"))
+        // {
+        //     ReleaseGrippedObject();
+        // }
+        ImGui::End();
     }
 
     void VelocitySplinePublisher::OnTick(float deltaTime, AZ::ScriptTimePoint time)

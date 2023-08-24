@@ -65,6 +65,7 @@ namespace ROS2
         float m_crossTrackFactor = 0.3f;
         bool m_drawInGame = true;
         bool m_publishingActive = false;
+        bool m_reversDirection = false;
 
 
         TopicConfiguration m_cmdTopicConfiguration;

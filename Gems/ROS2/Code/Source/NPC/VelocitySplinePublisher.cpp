@@ -133,7 +133,7 @@ namespace ROS2
 
         // calculate linear velocity
         float linearVelocity = 0;
-        if (splineQuery.m_splineAddress.m_segmentIndex != splinePtr->GetSegmentCount())
+        if (splineQuery.m_splineAddress.m_segmentIndex != splinePtr->GetSegmentCount() && !(splineQuery.m_splineAddress == splinePtr->GetAddressByFraction(1.0)))
         {
             linearVelocity = m_linearSpeedFactor;
         }

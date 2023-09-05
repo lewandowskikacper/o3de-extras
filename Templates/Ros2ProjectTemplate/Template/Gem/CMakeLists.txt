@@ -112,8 +112,6 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
                 ${gem_name}.Private.Object
     )
 
-endif()
-
 ly_add_target(
     NAME ${gem_name}.Editor GEM_MODULE
     NAMESPACE Gem
@@ -130,6 +128,7 @@ ly_add_target(
             Gem::Atom_Feature_Common.Static
 )
 
+endif()
 
 # if enabled, ${gem_name} is used by all kinds of applications
 ly_create_alias(NAME ${gem_name}.Builders NAMESPACE Gem TARGETS Gem::${gem_name}.Editor)

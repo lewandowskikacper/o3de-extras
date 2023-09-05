@@ -61,7 +61,7 @@ namespace ROS2
 
     void ConveyorBeltComponent::Activate()
     {
-        AzPhysics::SystemInterface* physicsSystem = AZ::Interface<AzPhysics::SystemInterface>::Get();
+        [[maybe_unused]] AzPhysics::SystemInterface* physicsSystem = AZ::Interface<AzPhysics::SystemInterface>::Get();
         AZ_Assert(physicsSystem, "No physics system");
         AzPhysics::SceneInterface* sceneInterface = AZ::Interface<AzPhysics::SceneInterface>::Get();
         AZ_Assert(sceneInterface, "No scene interface");

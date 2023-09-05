@@ -104,7 +104,7 @@ namespace ROS2
 
     void VacuumGripperComponent::OnTick(float delta, AZ::ScriptTimePoint timePoint)
     {
-        AzPhysics::SystemInterface* physicsSystem = AZ::Interface<AzPhysics::SystemInterface>::Get();
+        [[maybe_unused]] AzPhysics::SystemInterface* physicsSystem = AZ::Interface<AzPhysics::SystemInterface>::Get();
         AZ_Assert(physicsSystem, "No physics system.");
 
         AzPhysics::SceneInterface* sceneInterface = AZ::Interface<AzPhysics::SceneInterface>::Get();
@@ -186,7 +186,7 @@ namespace ROS2
             // No object to grip
             return false;
         }
-        PhysX::ArticulationLinkComponent* component = m_entity->FindComponent<PhysX::ArticulationLinkComponent>();
+        [[maybe_unused]] PhysX::ArticulationLinkComponent* component = m_entity->FindComponent<PhysX::ArticulationLinkComponent>();
         AZ_Assert(component, "No PhysX::ArticulationLinkComponent found on entity ");
 
         auto* sceneInterface = AZ::Interface<AzPhysics::SceneInterface>::Get();

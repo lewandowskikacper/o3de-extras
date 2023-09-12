@@ -7,6 +7,7 @@
  */
 
 #include "SourceAssetsStorage.h"
+#include "AzCore/std/containers/unordered_map.h"
 #include "RobotImporterUtils.h"
 #include <AzCore/IO/FileIO.h>
 #include <AzCore/Serialization/Json/JsonUtils.h>
@@ -321,7 +322,9 @@ namespace ROS2::Utils
             return urdfAssetMap;
         }
         AZStd::string amentPrefixPath{ enviromentalVariable };
-        AZStd::set<AZStd::string> files;
+
+        AZStd::unordered_map<AZStd::string, AZStd::string> filenames; // resolved path -> filename
+        AZStd::unordered_map<AZStd::string, unsigned int> count_filenames; // filename -> existence count
 
         for (const auto& unresolvedUrfFileName : meshesFilenames)
         {
@@ -337,10 +340,26 @@ namespace ROS2::Utils
             const bool needsVisual = visuals.contains(unresolvedUrfFileName);
             const bool needsCollider = colliders.contains(unresolvedUrfFileName);
 
-            const AZStd::string pathSuffix = needsCollider ? "collider_" : "";
+            AZStd::string filename;
 
-            AZ::IO::Path targetPathAssetDst(importDirectoryDst / (pathSuffix + resolvedPath.Filename().String()));
-            AZ::IO::Path targetPathAssetTmp(importDirectoryTmp / (pathSuffix + resolvedPath.Filename().String()));
+            if (filenames.contains(resolvedPath.String()))
+            {
+                filename = filenames[resolvedPath.String()];
+            }
+            else
+            {
+                filename = resolvedPath.Filename().String();
+                unsigned int& count = count_filenames[filename];
+                if (count > 0)
+                {
+                    filename = AZStd::string::format("dup%u_%s", count, filename.c_str());
+                }
+                count++;
+                filenames[resolvedPath.String()] = filename;
+            }
+
+            AZ::IO::Path targetPathAssetDst(importDirectoryDst / filename);
+            AZ::IO::Path targetPathAssetTmp(importDirectoryTmp / filename);
 
             AZ::IO::Path targetPathAssetInfo(targetPathAssetDst.Native() + ".assetinfo");
 

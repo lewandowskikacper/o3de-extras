@@ -337,8 +337,10 @@ namespace ROS2::Utils
             const bool needsVisual = visuals.contains(unresolvedUrfFileName);
             const bool needsCollider = colliders.contains(unresolvedUrfFileName);
 
-            AZ::IO::Path targetPathAssetDst(importDirectoryDst / resolvedPath.Filename());
-            AZ::IO::Path targetPathAssetTmp(importDirectoryTmp / resolvedPath.Filename());
+            const AZStd::string pathSuffix = needsCollider ? "collider_" : "";
+
+            AZ::IO::Path targetPathAssetDst(importDirectoryDst / (pathSuffix + resolvedPath.Filename().String()));
+            AZ::IO::Path targetPathAssetTmp(importDirectoryTmp / (pathSuffix + resolvedPath.Filename().String()));
 
             AZ::IO::Path targetPathAssetInfo(targetPathAssetDst.Native() + ".assetinfo");
 

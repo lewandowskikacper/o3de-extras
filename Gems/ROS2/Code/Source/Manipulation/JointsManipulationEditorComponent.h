@@ -9,6 +9,7 @@
 #pragma once
 
 #include <AzCore/std/containers/unordered_map.h>
+#include <AzCore/std/containers/vector.h>
 #include <AzCore/std/string/string.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <ROS2/Communication/PublisherConfiguration.h>
@@ -34,5 +35,7 @@ namespace ROS2
     private:
         PublisherConfiguration m_jointStatePublisherConfiguration;
         AZStd::unordered_map<AZStd::string, float> m_initialPositions;
+        AZStd::vector<AZStd::string> m_jointNames;
+        AZStd::string m_positionCommandTopic = "/position_controller/commands";
     };
 } // namespace ROS2

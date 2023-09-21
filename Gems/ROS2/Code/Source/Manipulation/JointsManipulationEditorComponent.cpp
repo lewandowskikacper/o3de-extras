@@ -30,7 +30,8 @@ namespace ROS2
 
     void JointsManipulationEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        gameEntity->CreateComponent<JointsManipulationComponent>(m_jointStatePublisherConfiguration, m_initialPositions);
+        gameEntity->CreateComponent<JointsManipulationComponent>(
+            m_jointStatePublisherConfiguration, m_initialPositions, m_jointNames, m_positionCommandTopic);
     }
 
     void JointsManipulationEditorComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
@@ -56,7 +57,9 @@ namespace ROS2
             serialize->Class<JointsManipulationEditorComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("JointStatePublisherConfiguration", &JointsManipulationEditorComponent::m_jointStatePublisherConfiguration)
-                ->Field("Initial positions", &JointsManipulationEditorComponent::m_initialPositions);
+                ->Field("Initial positions", &JointsManipulationEditorComponent::m_initialPositions)
+                ->Field("Joint Names", &JointsManipulationEditorComponent::m_jointNames)
+                ->Field("Position Command Topic", &JointsManipulationEditorComponent::m_positionCommandTopic);
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
             {
@@ -73,7 +76,17 @@ namespace ROS2
                         AZ::Edit::UIHandlers::Default,
                         &JointsManipulationEditorComponent::m_initialPositions,
                         "Initial positions",
-                        "Initial positions of all the joints");
+                        "Initial positions of all the joints")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default,
+                        &JointsManipulationEditorComponent::m_jointNames,
+                        "Joint Names",
+                        "Joint Names controlled by Position Controller")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default,
+                        &JointsManipulationEditorComponent::m_positionCommandTopic,
+                        "Position Conmmand Topic",
+                        "Topic on which position commands are received");
             }
         }
     }

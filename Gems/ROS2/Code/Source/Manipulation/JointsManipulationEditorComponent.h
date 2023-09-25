@@ -32,12 +32,9 @@ namespace ROS2
         // AzToolsFramework::Components::EditorComponentBase overrides
         void BuildGameEntity(AZ::Entity* gameEntity) override;
 
-        void Activate();
-
     private:
         PublisherConfiguration m_jointStatePublisherConfiguration;
-        AZStd::unordered_map<AZStd::string, float> m_initialPositions;
-        AZStd::vector<AZStd::string> m_jointOrderedNames;
+        AZStd::vector<AZStd::pair<AZStd::string, float>> m_initialPositions;
         AZStd::string m_positionCommandTopic = "/position_controller/commands";
     };
 } // namespace ROS2

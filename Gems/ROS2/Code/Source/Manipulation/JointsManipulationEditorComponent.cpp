@@ -7,6 +7,9 @@
  */
 
 #include "JointsManipulationEditorComponent.h"
+#include "AzCore/std/containers/unordered_map.h"
+#include "AzCore/std/containers/vector.h"
+#include "AzCore/std/string/string.h"
 #include "JointsManipulationComponent.h"
 #include <AzCore/Component/ComponentApplicationBus.h>
 #include <AzCore/Component/TransformBus.h>
@@ -30,8 +33,17 @@ namespace ROS2
 
     void JointsManipulationEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
+        AZStd::vector<AZStd::string> jointOrderedNames;
+        AZStd::unordered_map<AZStd::string, float> initialPositions;
+
+        for (auto [name, position]: m_initialPositions)
+        {
+            jointOrderedNames.push_back(name);
+            initialPositions[name] = position;
+        }
+
         gameEntity->CreateComponent<JointsManipulationComponent>(
-            m_jointStatePublisherConfiguration, m_initialPositions, m_jointOrderedNames, m_positionCommandTopic);
+            m_jointStatePublisherConfiguration, initialPositions, jointOrderedNames, m_positionCommandTopic);
     }
 
     void JointsManipulationEditorComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
@@ -50,26 +62,14 @@ namespace ROS2
         incompatible.push_back(AZ_CRC_CE("JointsManipulationService"));
     }
 
-    void JointsManipulationEditorComponent::Activate()
-    {
-        if (m_jointOrderedNames.empty())
-        {
-            for (auto [jointName, jointInfo] : m_initialPositions)
-            {
-                m_jointOrderedNames.push_back(jointName);
-            }
-        }
-    }
-
     void JointsManipulationEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<JointsManipulationEditorComponent, AZ::Component>()
-                ->Version(0)
+                ->Version(1)
                 ->Field("JointStatePublisherConfiguration", &JointsManipulationEditorComponent::m_jointStatePublisherConfiguration)
                 ->Field("Initial positions", &JointsManipulationEditorComponent::m_initialPositions)
-                ->Field("Ordered Joint Names", &JointsManipulationEditorComponent::m_jointOrderedNames)
                 ->Field("Position Command Topic", &JointsManipulationEditorComponent::m_positionCommandTopic);
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
@@ -87,12 +87,8 @@ namespace ROS2
                         AZ::Edit::UIHandlers::Default,
                         &JointsManipulationEditorComponent::m_initialPositions,
                         "Initial positions",
-                        "Initial positions of all the joints")
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::Default,
-                        &JointsManipulationEditorComponent::m_jointOrderedNames,
-                        "Ordered Joint Names",
-                        "Position Controller will forward control messages to joints in the order the appear here.")
+                        "Initial positions of all the joints. Position Controller will forward control messages to joints in the order the appear here.")
+                    ->Attribute(AZ::Edit::Attributes::ContainerReorderAllow, true)
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default,
                         &JointsManipulationEditorComponent::m_positionCommandTopic,

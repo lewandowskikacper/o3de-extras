@@ -13,6 +13,7 @@
 #include <AzCore/std/containers/unordered_map.h>
 #include <AzCore/std/string/string.h>
 #include <PhysX/ArticulationTypes.h>
+#include <AzCore/Component/Component.h>
 
 namespace ROS2
 {
@@ -31,9 +32,16 @@ namespace ROS2
     };
     using ManipulationJoints = AZStd::unordered_map<AZStd::string, JointInfo>;
    
-    struct JointInitialPosition
+
+    class JointInitialPosition : public AZ::ComponentConfig
     {
-        AZ_TYPE_INFO(JointInitialPosition, "{e81914ba-343a-478c-a4df-174d1f7b8a3d}");
+        public: 
+        
+        AZ_CLASS_ALLOCATOR(JointInitialPosition, AZ::SystemAllocator);
+        AZ_RTTI(JointInitialPosition, "{e81914ba-343a-478c-a4df-174d1f7b8a3d}", AZ::ComponentConfig);
+        
+
+        // AZ_TYPE_INFO(JointInitialPosition, "{e81914ba-343a-478c-a4df-174d1f7b8a3d}");
         static void Reflect(AZ::ReflectContext* context);
 
         AZStd::string m_name;

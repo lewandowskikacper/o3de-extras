@@ -8,6 +8,7 @@
 
 #include "JointsManipulationEditorComponent.h"
 #include "AzCore/Debug/Trace.h"
+#include "AzCore/base.h"
 #include "AzCore/std/containers/unordered_map.h"
 #include "AzCore/std/containers/vector.h"
 #include "AzCore/std/string/string.h"
@@ -32,6 +33,8 @@
 #include <AzCore/Serialization/DataPatch.h>
 #include <AzCore/Serialization/ObjectStream.h>
 #include <AzCore/Serialization/Utils.h>
+#include <AzCore/Serialization/EditContext.h>
+#include <AzCore/Serialization/EditContextConstants.inl>
 
 namespace ROS2
 {
@@ -41,6 +44,159 @@ namespace ROS2
         m_jointStatePublisherConfiguration.m_topicConfiguration.m_topic = "joint_states";
         m_jointStatePublisherConfiguration.m_frequency = 25.0f;
     }
+
+
+    AZ::JsonSerializationResult::Result JointJointInitialPositionSerializer::Load(
+        void* outputValue,
+        [[maybe_unused]] const AZ::Uuid& outputValueTypeId,
+        const rapidjson::Value& inputValue,
+        AZ::JsonDeserializerContext& context)
+    {
+
+        AZ_Info("JointsManipulationEditorComponent::JointJointInitialPositionSerializer", "Custom serializer is called");
+
+        namespace JSR = AZ::JsonSerializationResult;
+
+        auto configInstance = reinterpret_cast<JointsManipulationEditorComponent*>(outputValue);
+        AZ_Assert(configInstance, "Output value for JointsManipulationEditorComponent can't be null.");
+
+        JSR::ResultCode result(JSR::Tasks::ReadField);
+
+
+
+        // auto copyIntoStruct = [&](const char* name, auto& dataRef)
+        // {
+        //     rapidjson::Value::ConstMemberIterator itr = inputValue.FindMember(name);
+        //     if (itr != inputValue.MemberEnd() && itr->value.IsFloat())
+        //     {
+        //         dataRef = itr->value.GetFloat();
+        //     }
+        // };
+
+        // copyIntoStruct("gnssOriginLatitude", configInstance->m_gnssConfiguration.m_originLatitudeDeg);
+        // copyIntoStruct("gnssOriginLongitude", configInstance->m_gnssConfiguration.m_originLongitudeDeg);
+        // copyIntoStruct("gnssOriginAltitude", configInstance->m_gnssConfiguration.m_originAltitude);
+
+
+        rapidjson::Value::ConstMemberIterator itr = inputValue.FindMember("Initial positions");
+        if (itr != inputValue.MemberEnd())
+        {
+            AZ::u32 index = 0;
+            for(auto x = itr->value.MemberBegin(); x != itr->value.MemberEnd(); x++)
+            {
+            
+                auto name =  x->name.GetString();
+                auto position = x->value.GetFloat();
+                AZ_Info("JointJointInitialPositionSerializer", "Found joint %s position %f",name, position);
+
+                JointInitialPosition initial;
+                initial.m_name = name;
+                initial.m_position = position;
+                initial.m_index = index;
+                index++;
+
+                configInstance->m_initialPositions.insert(initial);
+            
+            }
+
+            AZ_Info("JointJointInitialPositionSerializer", "Collected %d joints", configInstance->m_initialPositions.size());
+
+
+            // if(itr->value.IsArray())
+            // {
+            //     AZ_Info("JointJointInitialPositionSerializer", "found array");
+            //     auto a = itr->value.GetArray();
+
+            //     for (auto&x : a)
+            //     {
+            //         if (x.IsFloat())
+            //         {
+            //             auto f = x.GetFloat();
+            //             AZ_Info("JointJointInitialPositionSerializer", "found float %f", f);
+
+            //         }
+
+            //         if(x.IsString())
+            //         {
+            //             auto f = x.GetString();
+            //             AZ_Info("JointJointInitialPositionSerializer", "found string %s", f);
+            //         }
+
+            //     }
+
+            //     // for ()
+            //     {
+
+            //     }
+
+            // }
+            
+            // for (auto x = itr->value.Begin(); x != itr->value.End(); x++)
+            // {
+            //     if (x->IsFloat())
+            //     {
+            //         auto f = x->GetFloat();
+            //         AZ_Info("JointJointInitialPositionSerializer", "found float %f", f);
+
+            //     }
+
+            //     if(x->IsString())
+            //     {
+            //         auto f = x->GetString();
+            //         AZ_Info("JointJointInitialPositionSerializer", "found string %s", f);
+            //     }
+
+            //     if(x->IsArray())
+            //     {
+            //         // auto f = x->GetString();
+            //         AZ_Info("JointJointInitialPositionSerializer", "found array");
+            //     }
+
+            // }
+
+        }
+        
+
+
+        result.Combine(ContinueLoadingFromJsonObjectField(
+            &configInstance->m_initialPositions,
+            azrtti_typeid<decltype(configInstance->m_initialPositions)>(),
+            inputValue,
+            "Initial positions ordered",
+            context));
+        
+
+
+        result.Combine(ContinueLoadingFromJsonObjectField(
+            &configInstance->m_jointStatePublisherConfiguration,
+            azrtti_typeid<decltype(configInstance->m_jointStatePublisherConfiguration)>(),
+            inputValue,
+            "JointStatePublisherConfiguration",
+            context));
+
+        result.Combine(ContinueLoadingFromJsonObjectField(
+            &configInstance->m_positionCommandTopic,
+            azrtti_typeid<decltype(configInstance->m_positionCommandTopic)>(),
+            inputValue,
+            "Position Command Topic",
+            context));
+
+        // result.Combine(ContinueLoadingFromJsonObjectField(
+        //     &configInstance->m_initialPositions,
+        //     azrtti_typeid<decltype(configInstance->m_initialPositions)>(),
+        //     inputValue,
+        //     "Initial positions",
+        //     context));
+
+
+        return context.Report(
+            result,
+            result.GetProcessing() != JSR::Processing::Halted ? "Successfully loaded GNSSSensorConfiguration information."
+                                                              : "Failed to load GNSSSensorConfiguration information.");
+
+    }
+
+    AZ_CLASS_ALLOCATOR_IMPL(JointJointInitialPositionSerializer, AZ::SystemAllocator);
 
     void JointsManipulationEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
@@ -149,6 +305,13 @@ namespace ROS2
     void JointsManipulationEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         JointInitialPosition::Reflect(context);
+
+
+        if (auto jsonContext = azrtti_cast<AZ::JsonRegistrationContext*>(context))
+        {
+            jsonContext->Serializer<JointJointInitialPositionSerializer>()->HandlesType<JointsManipulationEditorComponent>();
+        }
+
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<JointsManipulationEditorComponent, AZ::Component>()
